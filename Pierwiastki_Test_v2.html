@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<title>Nauka pierwiastków</title>
+<style>
+:root{--blue:#2563eb;--navy:#172554;--bg:#eff6ff;--ok:#15803d;--bad:#b91c1c;--card:#fff}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:linear-gradient(150deg,#dbeafe,#f8fafc 55%,#dcfce7);color:#172033;min-height:100vh}
+main{max-width:760px;margin:auto;padding:18px}.top{text-align:center;padding:10px 0 16px}.top h1{margin:0;font-size:clamp(26px,7vw,42px);color:var(--navy)}.top p{margin:7px 0 0;color:#475569}.panel{background:rgba(255,255,255,.95);border-radius:22px;padding:18px;box-shadow:0 14px 38px #1e3a8a20;border:1px solid #fff}.modes{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.mode{background:#e0e7ff;color:#1e3a8a;border:0;border-radius:13px;padding:12px 8px;font-weight:750;font-size:14px}.mode.active{background:var(--blue);color:#fff}.stats{display:flex;justify-content:space-between;gap:10px;margin:18px 0 12px}.chip{flex:1;text-align:center;background:#f1f5f9;padding:9px;border-radius:12px;font-weight:650}.question{min-height:145px;display:grid;place-items:center;text-align:center;background:linear-gradient(135deg,#eff6ff,#f0fdf4);border-radius:18px;padding:20px}.question small{display:block;color:#64748b;font-weight:650;margin-bottom:8px}.prompt{font-size:clamp(30px,10vw,58px);font-weight:850;color:var(--navy)}input{width:100%;font-size:20px;padding:15px;border:2px solid #cbd5e1;border-radius:14px;margin-top:14px;outline:none;text-align:center}input:focus{border-color:var(--blue)}.actions{display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-top:10px}button.action{border:0;border-radius:14px;padding:14px;font-size:17px;font-weight:800;color:#fff;background:var(--blue)}button.next{background:#64748b}.result{min-height:54px;text-align:center;font-size:17px;font-weight:750;padding:14px 4px 0}.ok{color:var(--ok)}.bad{color:var(--bad)}.footer{text-align:center;color:#64748b;font-size:13px;margin-top:14px}@media(max-width:480px){main{padding:12px}.panel{padding:14px}.modes{grid-template-columns:1fr 1fr}.mode{font-size:13px;padding:11px 4px}}
+</style>
+</head>
+<body><main><header class="top"><h1>🧪 Pierwiastki</h1><p>Quiz na podstawie szkolnej ściągi</p></header>
+<section class="panel">
+<div class="modes">
+<button class="mode active" data-mode="symbol">Symbol → nazwa</button>
+<button class="mode" data-mode="name">Nazwa → symbol</button>
+<button class="mode" data-mode="valency">Nazwa → wartościowość</button>
+<button class="mode" data-mode="mixed">Tryb mieszany</button>
+</div>
+<div class="stats"><div class="chip">Punkty: <span id="score">0</span></div><div class="chip">Seria: <span id="streak">0</span></div><div class="chip">Pytanie: <span id="count">1</span></div></div>
+<div class="question"><div><small id="instruction"></small><div class="prompt" id="prompt"></div></div></div>
+<input id="answer" autocomplete="off" autocapitalize="none" placeholder="Wpisz odpowiedź">
+<div class="actions"><button class="action" id="check">Sprawdź</button><button class="action next" id="next">Pomiń</button></div>
+<div class="result" id="result"></div>
+</section><div class="footer">30 pierwiastków • odpowiedzi nie rozróżniają wielkości liter • cyfry rzymskie oddziel przecinkami</div></main>
+<script>
+const elements=[
+['Wodór','H','I'],['Lit','Li','I'],['Sód','Na','I'],['Potas','K','I'],['Fluor','F','I'],
+['Beryl','Be','II'],['Magnez','Mg','II'],['Wapń','Ca','II'],['Bar','Ba','II'],['Stront','Sr','II'],['Cynk','Zn','II'],['Tlen','O','II'],
+['Glin','Al','III'],['Krzem','Si','IV'],['Ołów','Pb','II, IV'],['Cyna','Sn','II, IV'],['Węgiel','C','II, IV'],
+['Fosfor','P','III, V'],['Żelazo','Fe','II, III'],['Miedź','Cu','I, II'],['Srebro','Ag','I, II'],['Rtęć','Hg','I, II'],['Złoto','Au','I, III'],
+['Siarka','S','II, IV, VI'],['Chrom','Cr','II, III, VI'],['Azot','N','I, II, III, IV, V'],['Mangan','Mn','II, III, IV, VI, VII'],
+['Chlor','Cl','I, III, V, VII'],['Brom','Br','I, III, V, VII'],['Jod','I','I, III, V, VII']
+].map(([name,symbol,valency])=>({name,symbol,valency}));
+let mode='symbol', current=null, activeMode='symbol', score=0, streak=0, count=1, locked=false, previous=-1;
+const $=id=>document.getElementById(id);
+function normalize(s){return s.toLowerCase().trim().replace(/\s+/g,'').replace(/;/g,',').replace(/,+/g,',')}
+function pick(){let i; do{i=Math.floor(Math.random()*elements.length)}while(i===previous&&elements.length>1); previous=i; return elements[i]}
+function newQuestion(){current=pick(); activeMode=mode==='mixed'?['symbol','name','valency'][Math.floor(Math.random()*3)]:mode; locked=false; $('answer').value=''; $('answer').disabled=false; $('result').textContent=''; $('check').textContent='Sprawdź';
+if(activeMode==='symbol'){ $('instruction').textContent='Podaj nazwę pierwiastka'; $('prompt').textContent=current.symbol; $('answer').placeholder='Np. Żelazo'; }
+if(activeMode==='name'){ $('instruction').textContent='Podaj symbol pierwiastka'; $('prompt').textContent=current.name; $('answer').placeholder='Np. Fe'; }
+if(activeMode==='valency'){ $('instruction').textContent='Podaj wartościowość cyframi rzymskimi'; $('prompt').textContent=current.name; $('answer').placeholder='Np. II, III'; }
+$('answer').focus();}
+function expected(){return activeMode==='symbol'?current.name:activeMode==='name'?current.symbol:current.valency}
+function check(){if(locked){advance();return} const a=normalize($('answer').value); if(!a)return; locked=true; const good=normalize(expected()); if(a===good){score++;streak++;$('result').innerHTML='<span class="ok">✅ Dobrze!</span>'; }else{streak=0;$('result').innerHTML='<span class="bad">❌ Poprawna odpowiedź: '+expected()+'</span>';}$('score').textContent=score;$('streak').textContent=streak;$('answer').disabled=true;$('check').textContent='Następne';}
+function advance(){count++;$('count').textContent=count;newQuestion()}
+document.querySelectorAll('.mode').forEach(b=>b.addEventListener('click',()=>{mode=b.dataset.mode;document.querySelectorAll('.mode').forEach(x=>x.classList.remove('active'));b.classList.add('active');score=0;streak=0;count=1;$('score').textContent=0;$('streak').textContent=0;$('count').textContent=1;newQuestion()}));
+$('check').addEventListener('click',check);$('next').addEventListener('click',advance);$('answer').addEventListener('keydown',e=>{if(e.key==='Enter')check()});newQuestion();
+</script></body></html>
